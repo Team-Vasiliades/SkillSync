@@ -16,4 +16,4 @@ pip install docx2pdf
 pip install pywin32
 #05-02-2025
 pip install pymupdf
-
+pip install fpdf

@@ -1,120 +1,226 @@
 Google and Meta Authentication by Priyanshi Singh- DS, GGITS'28
 
+import requests
+from bs4 import BeautifulSoup
+import time
+import pandas as pd
 
-date 12 feb
+
+def Get_URL_Of_page(base_url, skill):
+    return f"{base_url}/internships/{skill}-internship"
 
 
-aiohappyeyeballs             2.4.4
-aiohttp                      3.11.11
-aiosignal                    1.3.2
-amqp                         5.3.1
-annotated-types              0.7.0
-anyio                        4.8.0
-asgiref                      3.8.1
-attrs                        24.3.0
-beautifulsoup4               4.12.3
-billiard                     4.2.1
-Brotli                       1.1.0
-bs4                          0.0.2
-cachetools                   5.5.1
-celery                       5.4.0
-certifi                      2024.12.14
-cffi                         1.17.1
-chardet                      5.2.0
-charset-normalizer           3.4.1
-click                        8.1.8
-click-didyoumean             0.3.1
-click-plugins                1.1.1
-click-repl                   0.3.0
-colorama                     0.4.6
-cron-descriptor              1.4.5
-cssselect2                   0.7.0
-distro                       1.9.0
-Django                       5.1.5
-django-celery-beat           2.7.0
-django-cors-headers          4.6.0
-django-timezone-field        7.1
-djangorestframework          3.15.2
-feedparser                   6.0.11
-fonttools                    4.55.4
-fpdf                         1.7.2
-frozenlist                   1.5.0
-google-ai-generativelanguage 0.6.15
-google-api-core              2.24.0
-google-api-python-client     2.159.0
-google-auth                  2.38.0
-google-auth-httplib2         0.2.0
-google-generativeai          0.8.4
-googleapis-common-protos     1.66.0
-grpcio                       1.70.0
-grpcio-status                1.70.0
-h11                          0.14.0
-httpcore                     1.0.7
-httplib2                     0.22.0
-httpx                        0.28.1
-idna                         3.10
-jiter                        0.8.2
-joblib                       1.4.2
-kombu                        5.4.2
-lxml                         5.3.0
-multidict                    6.1.0
-mysqlclient                  2.2.7
-numpy                        2.2.2
-openai                       0.28.0
-outcome                      1.3.0.post0
-packaging                    24.2
-pandas                       2.2.3
-pillow                       11.1.0
-pip                          24.3.1
-prompt_toolkit               3.0.50
-propcache                    0.2.1
-proto-plus                   1.25.0
-protobuf                     5.29.3
-pyasn1                       0.6.1
-pyasn1_modules               0.4.1
-pycparser                    2.22
-pydantic                     2.10.5
-pydantic_core                2.27.2
-pydyf                        0.11.0
-pyparsing                    3.2.1
-PyPDF2                       3.0.1
-pyphen                       0.17.2
-PySocks                      1.7.1
-python-crontab               3.2.0
-python-dateutil              2.9.0.post0
-python-decouple              3.8
-python-docx                  1.1.2
-python-dotenv                1.0.1
-pytz                         2024.2
-redis                        5.2.1
-reportlab                    4.2.5
-requests                     2.32.3
-rsa                          4.9
-scikit-learn                 1.6.1
-scipy                        1.15.1
-selenium                     4.28.1
-sgmllib3k                    1.0.0
-six                          1.17.0
-sniffio                      1.3.1
-sortedcontainers             2.4.0
-soupsieve                    2.6
-sqlparse                     0.5.3
-threadpoolctl                3.5.0
-tinycss2                     1.4.0
-tinyhtml5                    2.0.0
-tqdm                         4.67.1
-trio                         0.28.0
-trio-websocket               0.11.1
-typing_extensions            4.12.2
-tzdata                       2025.1
-uritemplate                  4.1.1
-urllib3                      2.3.0
-vine                         5.1.0
-wcwidth                      0.2.13
-weasyprint                   63.1
-webdriver-manager            4.0.2
-webencodings                 0.5.1
-websocket-client             1.8.0
-wsproto                      1.2.0
-yarl                         1.18.3
-zopfli                       0.2.3.post1
+def extract_job_title_from_result(job_div, job_post):
+    try:
+        job_title_tag = job_div.find("h3", class_="job-internship-name")
+        job_title = job_title_tag.find("a").get_text(strip=True) if job_title_tag else "Job Title not available"
+        job_post.append(job_title)
+    except Exception as e:
+        print(f"Error extracting job title: {e}")
+        job_post.append("Job Title not available")
+
+
+def extract_company_from_result(job_div, job_post):
+    try:
+        company_name_tag = job_div.find("p", class_="company-name")
+        company_name = company_name_tag.get_text(strip=True) if company_name_tag else "Company Name not available"
+        job_post.append(company_name)
+    except Exception as e:
+        print(f"Error extracting company: {e}")
+        job_post.append("Company Name not available")
+
+
+def extract_location_from_result(job_div, job_post):
+    try:
+        location_div = job_div.find("div", class_="row-1-item locations")
+        if location_div:
+            city = location_div.find("a").get_text(strip=True) if location_div.find("a") else "Location not specified"
+            mode = location_div.find("span").get_text(strip=True) if location_div.find("span") else ""
+            job_post.append(f"{city}".strip())
+        else:
+            job_post.append("Location not available")
+    except Exception as e:
+        print(f"Error extracting location: {e}")
+        job_post.append("Location not available")
+
+
+def extract_salary_from_result(job_div, job_post):
+    try:
+        salary_tag = job_div.find("span", class_="stipend")
+        job_post.append(salary_tag.get_text(strip=True) if salary_tag else "Salary not specified")
+    except Exception as e:
+        print(f"Error extracting salary: {e}")
+        job_post.append("Salary not specified")
+
+
+def extract_internship_link(job_div, base_url, job_post):
+    try:
+        relative_url = job_div.get("data-href")
+        job_post.append(f"{base_url}{relative_url}" if relative_url else "Link not available")
+    except Exception as e:
+        print(f"Error extracting internship link: {e}")
+        job_post.append("Link not available")
+
+
+def Get_total_pages(url):
+    page = requests.get(url)
+    soup = BeautifulSoup(page.text, "html.parser")
+    pagination = soup.find("div", class_="pagination")
+
+    if pagination:
+        pages = pagination.find_all("a")
+        return int(pages[-2].text) if pages else 1
+    return 1
+
+
+def Scrap_Internshala(base_url, skill):
+    url = Get_URL_Of_page(base_url, skill)
+    total_pages = Get_total_pages(url)
+    columns = ["job_title", "company_name", "location", "salary", "link"]
+    sample_df = pd.DataFrame(columns=columns)
+
+    for page_number in range(total_pages):
+        page = requests.get(f"{url}/page-{page_number + 1}")
+        time.sleep(1)
+        soup = BeautifulSoup(page.text, "html.parser")
+
+        for div in soup.find_all("div", class_="individual_internship"):
+            job_post = []
+
+            extract_job_title_from_result(div, job_post)
+            extract_company_from_result(div, job_post)
+            extract_location_from_result(div, job_post)
+            extract_salary_from_result(div, job_post)
+            extract_internship_link(div, base_url, job_post)
+
+            # Ensure job_post has exactly 5 elements
+            job_post = job_post[:len(columns)]  # Trim extra elements
+            while len(job_post) < len(columns):
+                job_post.append("N/A")  # Fill missing elements
+
+            sample_df.loc[len(sample_df)] = job_post
+
+    return sample_df
+
+
+
+
+
+
+
+
+import requests
+from bs4 import BeautifulSoup
+import time
+import pandas as pd
+
+
+def get_jobs_url(base_url, skill):
+    """Generate the URL to search jobs based on skill."""
+    return f"{base_url}/jobs/{skill}-jobs"
+
+
+def extract_job_title(job_div, job_post):
+    try:
+        job_title_tag = job_div.find("h3", class_="job-internship-name")
+        job_title = job_title_tag.find("a").get_text(strip=True) if job_title_tag else "Job Title not available"
+        job_post.append(job_title)
+    except Exception as e:
+        print(f"Error extracting job title: {e}")
+        job_post.append("Job Title not available")
+
+
+def extract_company_name(job_div, job_post):
+    try:
+        company_name_tag = job_div.find("p", class_="company-name")
+        company_name = company_name_tag.get_text(strip=True) if company_name_tag else "Company Name not available"
+        job_post.append(company_name)
+    except Exception as e:
+        print(f"Error extracting company: {e}")
+        job_post.append("Company Name not available")
+
+
+def extract_location(job_div, job_post):
+    try:
+        location_div = job_div.find("p", class_="row-1-item locations")
+        if location_div:
+            city = location_div.find("a").get_text(strip=True) if location_div.find("a") else ""
+            mode = location_div.find("span").get_text(strip=True) if location_div.find("span") else ""
+            location = f"{city}" if city and mode else city or mode  
+            job_post.append(location.strip() if location else "Location not specified")
+        else:
+            job_post.append("Location not available")
+    except Exception as e:
+        print(f"Error extracting location: {e}")
+        job_post.append("Location not available")
+
+
+
+
+def extract_salary(job_div, job_post):
+    try:
+        salary_span = job_div.find("i", class_="ic-16-money")  
+        if salary_span:
+            salary_text = salary_span.find_next_sibling("span").get_text(strip=True)  
+            job_post.append(salary_text if salary_text else "Salary not specified")
+        else:
+            job_post.append("Salary not available")
+    except Exception as e:
+        print(f"Error extracting salary: {e}/year")
+        job_post.append("Salary not available")
+
+
+
+def extract_job_link(job_div, base_url, job_post):
+    try:
+        relative_url = job_div.get("data-href")
+        job_post.append(f"{base_url}{relative_url}" if relative_url else "Link not available")
+    except Exception as e:
+        print(f"Error extracting job link: {e}")
+        job_post.append("Link not available")
+
+
+def get_total_pages(url):
+    """Find the total number of pages in the job listing."""
+    page = requests.get(url)
+    soup = BeautifulSoup(page.text, "html.parser")
+    pagination = soup.find("div", class_="pagination")
+
+    if pagination:
+        pages = pagination.find_all("a")
+        return int(pages[-2].text) if pages else 1
+    return 1
+
+
+def scrap_jobs(base_url, skill):
+    """Scrape jobs from Internshala based on the skill provided."""
+    url = get_jobs_url(base_url, skill)
+    total_pages = get_total_pages(url)
+    columns = ["Job_Title", "Company_Name", "Locations", "Salary", "Job_Link"]
+    jobs_df = pd.DataFrame(columns=columns)
+
+    for page_number in range(total_pages):
+        page = requests.get(f"{url}/page-{page_number + 1}")
+        time.sleep(1)
+        soup = BeautifulSoup(page.text, "html.parser")
+
+        for div in soup.find_all("div", class_="individual_internship"):
+            job_post = []
+
+            extract_job_title(div, job_post)
+            extract_company_name(div, job_post)
+            extract_location(div, job_post)
+            extract_salary(div, job_post)
+            extract_job_link(div, base_url, job_post)
+
+         
+            job_post = job_post[:len(columns)]
+            while len(job_post) < len(columns):
+                job_post.append("N/A")
+
+            jobs_df.loc[len(jobs_df)] = job_post
+
+    return jobs_df
+
+
+

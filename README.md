@@ -1,16 +1,32 @@
 Google and Meta Authentication by Priyanshi Singh- DS, GGITS'28
 
 
-from django.urls import path
-from . import views
-from .views import USAJobsView
+# forms.py
+from django import forms
 
- path('suggest-resume/', views.suggest_resume, name='suggest_resume'),
-    path('convert-to-cv/', views.convert_to_cv, name='convert_to_cv'),  # Route for resume upload and suggestions 
-     path('api/jobs/', USAJobsView.as_view(), name='job-list'), 
-    path('fetch-internships/', views.fetch_internships_view, name='fetch_internships'),
-    path('fetch-jobs/',views.fetch_jobs_view,name='fetch_jobs'),
-     path("fetch-ijobs/", views.job_search_view, name="fetch_ijobs"),
+class InternshipSearchForm(forms.Form):
+    keyword = forms.CharField(max_length=100, required=False, label="Search for Internship")
+    location = forms.CharField(max_length=100, required=False, label="Location")
+
+
+
+from django import forms
+
+class JobSearchForm(forms.Form):
+    keyword = forms.CharField(max_length=100, required=True, label="Search for Job")
+    location = forms.CharField(max_length=100, required=False, label="Location")
+
+
+
+
+from django import forms
+from .models import UserProfile
+
+class ResumeUploadForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ['resume']
+
 
 
 

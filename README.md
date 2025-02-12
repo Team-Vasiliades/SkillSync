@@ -1,31 +1,19 @@
 Google and Meta Authentication by Priyanshi Singh- DS, GGITS'28
 
+from django.conf import settings
+from django.conf.urls.static import static  # Import the static function
+from django.contrib import admin
+from django.urls import path, include
 
-# forms.py
-from django import forms
+urlpatterns = [
+    path('admin/', admin.site.urls),  # Admin panel
+    path('', include('home.urls')),  # Include URLs from the "home" app
+]
 
-class InternshipSearchForm(forms.Form):
-    keyword = forms.CharField(max_length=100, required=False, label="Search for Internship")
-    location = forms.CharField(max_length=100, required=False, label="Location")
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-
-
-from django import forms
-
-class JobSearchForm(forms.Form):
-    keyword = forms.CharField(max_length=100, required=True, label="Search for Job")
-    location = forms.CharField(max_length=100, required=False, label="Location")
-
-
-
-
-from django import forms
-from .models import UserProfile
-
-class ResumeUploadForm(forms.ModelForm):
-    class Meta:
-        model = UserProfile
-        fields = ['resume']
 
 
 

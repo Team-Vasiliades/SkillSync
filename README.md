@@ -164,3 +164,23 @@ urlpatterns = [
     path('save_resume_pdf/', views.save_resume_pdf, name='save_resume_pdf'),
     path('resume_editor/', views.resume_editor, name='resume_editor'),
 ]
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+##urls.py backend
+
+
+from django.contrib import admin
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('upload/', include('home.urls')),  # Ensure the upload URL is correctly linked
+    path('', include('home.urls')),  # This is your home page URL
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

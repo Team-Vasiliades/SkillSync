@@ -145,3 +145,22 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 LOGIN_URL = '/login/'  # Update this to match the path in your urls.py
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------
+
+##urls.py
+
+from django.urls import path
+from . import views
+
+urlpatterns = [
+    path('', views.upload_resume, name='home'),
+    path('upload/', views.upload_resume, name='upload'),
+    path('register/', views.register, name='register'),
+    path('login/', views.login_user, name='login'),
+    path('logout/', views.logout_user, name='logout'),
+    path('download/<int:resume_id>/', views.download_resume, name='download_resume'),
+    path('save_resume_pdf/', views.save_resume_pdf, name='save_resume_pdf'),
+    path('resume_editor/', views.resume_editor, name='resume_editor'),
+]
